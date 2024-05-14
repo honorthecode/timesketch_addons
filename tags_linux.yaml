@@ -1,0 +1,105 @@
+# Tags Linux application execution events.
+application_execution:
+  query_string:  '(data_type:"bash:history:entry") OR (data_type:"docker:layer:configuration") OR (data_type:"fish:history:entry") OR (data_type:"selinux:line" AND (audit_type:"EXECVE" OR audit_type:"USER_CMD")) OR (data_type:"shell:zsh:history") OR (data_type:"syslog:cron:task_run") OR (reporter:"sudo" AND body:"COMMAND=") OR (reporter:"CROND" AND body:"CMD")'
+  tags: ['application_execution']
+
+# Tags Linux log-in events.
+login:
+  query_string:  '(data_type:"linux:utmp:event" AND type:7) OR (data_type:"selinux:line" AND audit_type:"LOGIN") OR (reporter:"login" AND (body:"logged in" OR body:"ROOT LOGIN" OR body:"session opened")) OR (reporter:"sshd" AND (body:"session opened" OR body:"Starting session")) OR (reporter:"dovecot" AND body:"imap-login: Login:") OR (reporter:"postfix/submission/smtpd" AND body:"sasl_")'
+  tags: ['login']
+
+# Tags Linux failed log-in events.
+login_failed:
+  query_string:  '(data_type:"selinux:line" AND audit_type:"ANOM_LOGIN_FAILURES") OR (data_type:"selinux:line" AND audit_type:"USER_LOGIN" AND body:"res=failed") OR (data_type:"syslog:line" AND body:"pam_tally2") OR ((reporter:"sshd" OR reporter:"login" OR reporter:"postfix/submission/smtpd" OR reporter:"sudo") AND (body:"authentication failed" OR body:"authentication failure" OR body:"authentication failures")) OR (reporter:"sshd" AND (body:"Access denied for user" OR body:"not allowed because")) OR ((reporter:"xscreensaver" or reporter:"login") AND body:"FAILED LOGIN") OR (reporter:"su" and body:"DENIED") OR (reporter:"nologin")'
+  tags: ['login_failed']
+
+# User added.
+useradd:
+  query_string:  '(reporter:"useradd" AND body:"new user") OR (data_type:"selinux:line" AND audit_type:"ADD_USER")'
+  tags: ['useradd']
+
+# Group added.
+groupadd:
+  query_string:  '(reporter:"useradd" AND body:"new group") OR (data_type:"selinux:line" AND audit_type:"ADD_GROUP") OR (reporter:"groupadd")'
+  tags: ['groupadd']
+
+# User removed.
+userdel:
+  query_string:  '(reporter:"userdel" AND body:"delete user") OR (data_type:"selinux:line" AND audit_type:"DEL_USER")'
+  tags: ['userdel']
+
+# Group removed.
+groupdel:
+  query_string:  '(reporter:"userdel" AND body:"removed group") OR (data_type:"selinux:line" AND audit_type:"DEL_GROUP") OR (reporter:"groupdel")'
+  tags: ['groupdel']
+
+# Netfilter chain modifications.
+firewall_change:
+  query_string:  '(data_type:"selinux:line" AND audit_type:"NETFILTER_CFG")'
+  tags: ['firewall_change']
+
+# Tags Linux log-out events.
+logout:
+  # This will also flag dead gettys that init kills during shutdown/reboot (at least with SysV init)
+  query_string:  '(data_type:"linux:utmp:event" AND type:8 AND NOT (terminal:"" OR pid:0)) OR  (reporter:"login" AND body:"session closed") OR (reporter:"sshd" AND (body:"session closed" OR body:"Close session")) OR (reporter:"systemd-logind" AND body:"logged out") OR (reporter:"dovecot" AND body:"Logged out") OR (data_type:"selinux:line" AND audit_type:"USER_LOGOUT")'
+  tags: ['logout']
+
+# Tags Linux user session start events.
+session_start:
+  query_string:  '(reporter:"systemd-logind" AND body:"New session")'
+  tags: ['session_start']
+
+# Tags Linux user session stop events.
+session_stop:
+  query_string:  '(reporter:"systemd-logind" AND body:"Removed session")'
+  tags: ['session_stop']
+
+# Tags Linux system boot events.
+boot:
+  query_string:  '(data_type:"linux:utmp:event" AND type:2 AND terminal:"system boot" AND username:"reboot") OR (data_type:"selinux:line" AND audit_type:"SYSTEM_BOOT")'
+  tags: ['boot']
+
+# Tags Linux system shutdown events.
+shutdown:
+  query_string:  '(data_type:"linux:utmp:event" AND type:1 AND (terminal:"~~" OR terminal:"system boot") AND username:"shutdown") OR (data_type:"selinux:line" AND audit_type:"SYSTEM_SHUTDOWN")'
+  tags: ['shutdown']
+
+# Tags Linux system run level change events.
+runlevel:
+  query_string:  '(data_type:"linux:utmp:event" AND type:1 AND username:"runlevel") OR (data_type:"selinux:line" AND audit_type:"SYSTEM_RUNLEVEL")'
+  tags: ['runlevel']
+
+# Tags Linux device connection events.
+device_connection:
+  query_string:  '(reporter:"kernel" AND body:"New USB device found")'
+  tags: ['device_connection']
+
+# Tags Linux device disconnection events.
+device_disconnection:
+  query_string:  '(reporter:"kernel" AND body:"USB disconnect") OR (reporter:"kernel" AND body:"USB disconnect")'
+  tags: ['device_disconnection']
+
+# Tags Linux application installation events.
+application_install:
+  query_string:  '(data_type:"linux:dpkg_log:entry" AND body:"status installed")'
+  tags: ['application_install']
+
+# Tags Linux service start events.
+service_start:
+  query_string:  '(data_type:"selinux:line" AND audit_type:"SERVICE_START")'
+  tags: ['service_start']
+
+# Tags Linux service stop events.
+service_stop:
+  query_string:  '(data_type:"selinux:line" AND audit_type:"SERVICE_STOP")'
+  tags: ['service_stop']
+
+# Tags Linux network promiscious mode change events.
+promiscuous:
+  query_string:  '(data_type:"selinux:line" AND audit_type:"ANOM_PROMISCUOUS") OR  (reporter:"kernel" AND body:"promiscuous mode")'
+  tags: ['promiscuous']
+
+# Tags Linux system crash events.
+crash:
+  query_string:  '(data_type:"selinux:line" AND audit_type:"ANOM_ABEND") OR (reporter:"kernel" AND body:"segfault")'
+  tags: ['crash']
